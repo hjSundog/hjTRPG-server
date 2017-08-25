@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>testServer</title>
+</head>
+<body>
+<label>nickname</label><input type="text" name="nickname">
+<label>password</label><input type="password" name="password">
+<button id="login">submit</button>
+<input type="text" name="room" id="room" placeholder="room">
+<input type="text" name="msg" id="chat" placeholder="chat">
+<ul id="msg">
+
+</ul>
+<script>
+    function addMsg(msg){
+        var newNode = document.createElement("li");
+        var textNode = document.createTextNode(msg);
+        newNode.appendChild(textNode);
+        document.getElementById('msg').appendChild(newNode);
+    }
+</script>
+<script src="http://localhost:3000/socket.io/socket.io.js"></script>
+<!-- <script type="text/javascript" src='socketClient.js'></script> -->
+<script type="text/javascript">
+    var socket = io(location.hostname+':'+location.port);
+    var socketMsg = '';
+    socket.on('system',function(){
+
+    });
+
+    socket.on('loginOp',function(data){
+        if(data.state){
+
+        }
+        addMsg(data.msg);
+    });
+
+    socket.on('register',function(data){
+        switch (data.state) {
+            case 0:
+                
+                break;
+            case 1:
+                break;
+            default:
+                // statements_def
+                break;
+        }
+    });
+
+    socket.on('roomOp',function(data){
+        switch (data.op) {
+            case 'join':
+                if(data.state==0){
+                    addMsg(data.msg);
+                }
+                break;
+            case 'leave':
+                if(data.state==0){
+                    addMsg(data.msg);
+                }
+                break;
+            case 'reset':
+                if(data.state==0){
+                    addMsg(data.msg);
+                }   
+                break;
+            case 'chat':
+                if(data.state==0){
+                    addMsg(data.msg);
+                }
+                break;
+            default:
+                
+                break;
+        }
+    });
+</script>
+<script type="text/javascript">
+socket.emit('login',{nickname:'admin'});
+socket.emit('joinRoom',{nickname:'admin'},'admin');
+document.getElementById('chat').onkeypress = function(e){
+    console.log('press');
+    if(e.keyCode==13){
+        socket.emit('chatRoom',document.getElementById('chat').value,'admin');
+    }
+}
+
+</script>
+</body>
+</html>
