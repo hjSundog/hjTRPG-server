@@ -4,20 +4,57 @@
     <title>testServer</title>
 </head>
 <body>
-<label>nickname</label><input type="text" name="nickname">
-<label>password</label><input type="password" name="password">
+<label>nickname</label><input type="text" name="nickname" id="nickname">
 <button id="login">submit</button>
-<input type="text" name="room" id="room" placeholder="room">
+<input type="text" name="room" id="addroom" placeholder="join room">
+<input type="text" name="room" id="leaveroom" placeholder="leave room">
+<input type="text" id="createroom" placeholder="create room">
 <input type="text" name="msg" id="chat" placeholder="chat">
-<ul id="msg">
+<div style="display: flex;">
+    <div id="room" style="display:flex;background-color: gray;flex:1;flex-direction: row">
+        <ul id="msg">
+            <li>消息</li>
+        </ul> 
+        <ul id="users">
+            <li>users列表</li>
+        </ul>
+    </div>
+    <div id="rooms" style="width: 100px,background-color:orange">
+        <ul>
+            <li>房间</li>
+        </ul>
+    </div>
+</div>
 
-</ul>
+
 <script>
     function addMsg(msg){
         var newNode = document.createElement("li");
         var textNode = document.createTextNode(msg);
         newNode.appendChild(textNode);
         document.getElementById('msg').appendChild(newNode);
+    }
+    function addUser(users){
+        document.querySelectorAll('#users li:not(:first-child)').length>0 && document.querySelectorAll('#users li:not(:first-child)').forEach(function(ele){
+            ele.remove();
+        });
+        users.forEach(function(user){
+            var newNode = document.createElement("li");
+            var textNode = document.createTextNode(user.nickname);
+            newNode.appendChild(textNode);
+            document.getElementById('users').appendChild(newNode);          
+        })
+    }
+    function addRoom(rooms){
+        document.querySelectorAll('#rooms > ul li:not(:first-child)').length>0 && document.querySelectorAll('#rooms > ul li:not(:first-child)').forEach(function(ele){
+                ele.remove();
+        });
+        rooms.forEach(function(room){
+            var newNode = document.createElement("li");
+            var textNode = document.createTextNode(room);
+            newNode.appendChild(textNode);
+            document.querySelector('#rooms > ul').appendChild(newNode); 
+        })
     }
 </script>
 <script src="http://localhost:3000/socket.io/socket.io.js"></script>
@@ -71,6 +108,16 @@
                     addMsg(data.msg);
                 }
                 break;
+            case 'create':
+                if(data.state==0){
+                    addRoom(data.rooms)
+                }
+                break;
+            case 'updateUsers':
+                if(data.state==0){
+                    addUser(data.users)
+                }
+                break;
             default:
                 
                 break;
@@ -78,12 +125,35 @@
     });
 </script>
 <script type="text/javascript">
-socket.emit('login',{nickname:'admin'});
-socket.emit('joinRoom',{nickname:'admin'},'admin');
+
+document.getElementById('login').onclick = function(e){
+    var nickname = document.getElementById('nickname').value;
+    socket.emit('login',{nickname:nickname});
+}
+
+document.getElementById('addroom').onkeypress = function(e){
+    var nickname = document.getElementById('nickname').value;
+    if(e.keyCode == 13){
+        socket.emit('joinRoom',{nickname:nickname},e.target.value);
+    }
+}
+document.getElementById('leaveroom').onkeypress = function(e){
+    var nickname = document.getElementById('nickname').value;
+    if(e.keyCode == 13){
+        socket.emit('leaveRoom',{nickname:nickname},e.target.value);
+    }
+}
+document.getElementById('createroom').onkeypress = function(e){
+    if(e.keyCode == 13){
+        socket.emit('createRoom',e.target.value);
+    }
+}
+
 document.getElementById('chat').onkeypress = function(e){
+    var room = document.getElementById('addroom').value;
     console.log('press');
     if(e.keyCode==13){
-        socket.emit('chatRoom',document.getElementById('chat').value,'admin');
+        socket.emit('chatRoom',document.getElementById('chat').value,room);
     }
 }
 
