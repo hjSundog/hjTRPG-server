@@ -19,10 +19,15 @@
             <li>users列表</li>
         </ul>
     </div>
-    <div id="rooms" style="width: 100px,background-color:orange">
+    <div id="rooms" style="width: 200px,background-color:orange">
         <ul>
+            <li>大厅人数</li>
+            <li  id="hailusers">0</li>
+        </ul>
+        <ul id="hailrooms">
             <li>房间</li>
         </ul>
+
     </div>
 </div>
 
@@ -45,15 +50,19 @@
             document.getElementById('users').appendChild(newNode);          
         })
     }
+
+    function changeHailUsers(usernum){
+        document.getElementById('hailusers').innerText = usernum;
+    }
     function addRoom(rooms){
-        document.querySelectorAll('#rooms > ul li:not(:first-child)').length>0 && document.querySelectorAll('#rooms > ul li:not(:first-child)').forEach(function(ele){
+        document.querySelectorAll('#rooms > #hailrooms li:not(:first-child)').length>0 && document.querySelectorAll('#rooms > ul li:not(:first-child)').forEach(function(ele){
                 ele.remove();
         });
         rooms.forEach(function(room){
             var newNode = document.createElement("li");
             var textNode = document.createTextNode(room);
             newNode.appendChild(textNode);
-            document.querySelector('#rooms > ul').appendChild(newNode); 
+            document.querySelector('#rooms > #hailrooms').appendChild(newNode); 
         })
     }
 </script>
@@ -85,6 +94,20 @@
                 break;
         }
     });
+
+    socket.on('hailOp',function(data){
+        switch (data.op) {
+            case 'message':
+                addMsg(data.user + ':' +data.msg);
+                break;
+            case 'hailUserNum':
+                changeHailUsers(data.userNum)
+                break;
+            default:
+                // statements_def
+                break;
+        }
+    })
 
     socket.on('roomOp',function(data){
         switch (data.op) {
@@ -144,8 +167,9 @@ document.getElementById('leaveroom').onkeypress = function(e){
     }
 }
 document.getElementById('createroom').onkeypress = function(e){
+    var nickname = document.getElementById('nickname').value;
     if(e.keyCode == 13){
-        socket.emit('createRoom',e.target.value);
+        socket.emit('createRoom',nickname,e.target.value);
     }
 }
 
@@ -153,7 +177,12 @@ document.getElementById('chat').onkeypress = function(e){
     var room = document.getElementById('addroom').value;
     console.log('press');
     if(e.keyCode==13){
-        socket.emit('chatRoom',document.getElementById('chat').value,room);
+        if(room == ''){
+            socket.emit('chatHail',document.getElementById('chat').value);
+        }else{
+            socket.emit('chatRoom',document.getElementById('chat').value,room);
+        }
+        
     }
 }
 
